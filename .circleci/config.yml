@@ -35,8 +35,6 @@ jobs:
 
       # run tests!
       - run: sbt coverage test coverageReport codacyCoverage
-  deploy:
-    steps:
       - setup_remote_docker
       - run:
           name: Build application Docker image
@@ -58,11 +56,3 @@ jobs:
                 fi
               fi
             fi
-workflows:
-  version: 2
-  build_and_deploy:
-    jobs:
-      - build
-      - deploy:
-        requires:
-          - build

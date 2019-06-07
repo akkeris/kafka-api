@@ -2,11 +2,11 @@ package e2e
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import helper.PostgresTestSpec
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import platform.PostgresTestSpec
 import play.api.Application
 import play.api.db.evolutions.EvolutionsModule
 import play.api.db.{ DBModule, Database }

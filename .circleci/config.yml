@@ -34,7 +34,7 @@ jobs:
           key: v1-dependencies-{{ checksum "build.sbt" }}
 
       # run tests!
-      - run: sbt coverage test coverageReport codacyCoverage
+      - run: sbt coverage test coverageReport
       - setup_remote_docker
       - run:
           name: Build application Docker image

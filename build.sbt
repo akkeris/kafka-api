@@ -6,9 +6,9 @@ name := """kafka-api"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala).enablePlugins(JavaAppPackaging)
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.8"
 
 resolvers ++= Seq(
   "Confluent" at "https://packages.confluent.io/maven/",

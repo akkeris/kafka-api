@@ -188,7 +188,7 @@ class AclControllerTests extends IntTestSpec with BeforeAndAfterEach with Embedd
       val expectedJson = Json.obj("id" -> getAclId(aclRequest)).toString
 
       Status(result.status) mustBe Ok
-      entriesWithRoleInDb(role.role) mustBe 2
+      entriesWithRoleInDb(role.role) mustBe 1
       result.body mustBe expectedJson
       // Acl should be created for topic and group
       aclExistsInKafka(username, role.operation).size() mustEqual 3

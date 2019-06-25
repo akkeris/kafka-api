@@ -36,6 +36,7 @@ jobs:
       # run tests!
       - run: sbt coverage test coverageReport
       - setup_remote_docker
+      - run: pwd; ls -l;
       - run:
           name: Build application Docker image
           command: |

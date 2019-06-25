@@ -1,14 +1,45 @@
-FROM quay.octanner.io/base/oct-scala:2.12.2-sbt-0.13.15-play-2.6.1
+FROM openjdk:8-alpine
+WORKDIR /usr/local
 
-COPY build.sbt start.sh ./
-RUN chmod +x ./start.sh
-COPY project project/
+ARG SCALA_VERSION=2.12.8
+ARG SBT_VERSION=1.2.8
+ARG PLAY_VERSION=2.6.20
+
+ENV SCALA_VERSION ${SCALA_VERSION}
+ENV SBT_VERSION ${SBT_VERSION}
+ENV PLAY_VERSION ${PLAY_VERSION}
+
+RUN apk update
+RUN apk upgrade
+RUN apk add bash
+RUN apk add --update \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+RUN set -x \
+    && curl -fsL https://piccolo.link/sbt-${SBT_VERSION}.tgz | tar xfz - \
+    && ls -al
+
+RUN set -x \
+    && curl -fsL http://downloads.typesafe.com/scala/${SCALA_VERSION}/scala-${SCALA_VERSION}.tgz | tar xfz - \
+    && mv scala-${SCALA_VERSION} scala \
+    && ls -al
+
+ENV PATH /usr/local/sbt/bin:/usr/local/scala/bin:$PATH
+
+COPY sbtopts /etc/sbt
+COPY system.properties /app/
+COPY build.sbt /app/build.sbt
+COPY project /app/project/
+COPY start.sh /app/
+
+WORKDIR /app
+
 RUN sbt update
 
 ## If you copy the source after the update, then you can actually cache artifacts
-COPY conf conf
-COPY app app
+COPY . /app/
 
 RUN sbt compile stage
-
-ENTRYPOINT ["./start.sh"]
+RUN chmod +x /app/start.sh
+ENTRYPOINT ["/app/start.sh"]

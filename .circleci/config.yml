@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/sample-config/ for more details
 #
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -22,9 +22,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "build.sbt" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
 
       - run: cat /dev/null | sbt test:compile
 
@@ -34,5 +34,26 @@ jobs:
           key: v1-dependencies-{{ checksum "build.sbt" }}
 
       # run tests!
-      - run: sbt coverage test coverageReport codacyCoverage
-
+      - run: sbt coverage test coverageReport
+      - setup_remote_docker
+      - run: pwd; ls -l;
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build -t kafka-api .
+      - deploy:
+          name: Push application Docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "release" ]; then
+              if [ "${CIRCLE_PROJECT_USERNAME}" == "akkeris" ]; then
+                docker login -u $DOCKER_LOGIN -p $DOCKER_PASS
+                docker tag kafka-api "docker.io/akkeris/kafka-api:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}"
+                docker push "docker.io/akkeris/kafka-api:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}"
+                if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                  docker tag kafka-api "docker.io/akkeris/kafka-api:release-${CIRCLE_BUILD_NUM}"
+                  docker tag kafka-api "docker.io/akkeris/kafka-api:latest"
+                  docker push "docker.io/akkeris/kafka-api:latest"
+                  docker push "docker.io/akkeris/kafka-api:release-${CIRCLE_BUILD_NUM}"
+                fi
+              fi
+            fi

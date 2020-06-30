@@ -4,21 +4,22 @@ import java.util.concurrent.ExecutionException
 
 import daos.TopicDao
 import javax.inject.Inject
-import models.Models.{ BasicTopicInfo, Topic, TopicConfiguration, TopicKeyMapping }
-import models.http.HttpModels.{ TopicKeyMappingRequest, TopicSchemaMapping }
+import models.Models.{BasicTopicInfo, Topic, TopicConfiguration, TopicKeyMapping}
+import models.http.HttpModels.{TopicKeyMappingRequest, TopicSchemaMapping}
+import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.common.config.TopicConfig
 import org.apache.kafka.common.errors.TopicExistsException
 import org.postgresql.util.PSQLException
 import play.api.db.Database
-import play.api.{ Configuration, Logger }
+import play.api.{Configuration, Logger}
 import utils.AdminClientUtil
-import utils.Exceptions.{ NonUniqueTopicNameException, ResourceExistsException, ResourceNotFoundException, UndefinedResourceException }
+import utils.Exceptions.{NonUniqueTopicNameException, ResourceExistsException, ResourceNotFoundException, UndefinedResourceException}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 class TopicService @Inject() (
     db:         Database,
@@ -31,6 +32,19 @@ class TopicService @Inject() (
 
   val logger = Logger(this.getClass)
 
+  def getRetentionMs(cluster: String, configSet: TopicConfiguration, topic: Topic, cleanupPolicy: String): Long = {
+    if (StringUtils.compareIgnoreCase(cleanupPolicy, "state") == 0 ||
+      StringUtils.compareIgnoreCase(cleanupPolicy, "compact") == 0) {
+      if (topic.config.retentionMs.getOrElse(-1L) > 0)
+        topic.config.retentionMs.get
+      else
+        configSet.retentionMs.getOrElse(86400000L)
+    } else {
+      topic.config.retentionMs.getOrElse(configSet.retentionMs.getOrElse(
+        conf.get[Long](cluster.toLowerCase + DEFAULT_RETENTION_CONFIG)))
+    }
+  }
+
   def createTopic(cluster: String, topic: Topic): Future[Topic] = {
     val topicName = topic.name
 
@@ -41,10 +55,10 @@ class TopicService @Inject() (
         conf.get[Int](cluster.toLowerCase + DEFAULT_PARTITIONS_CONFIG)))
       val replicas = topic.config.replicas.getOrElse(configSet.replicas.getOrElse(
         conf.get[Int](cluster.toLowerCase + DEFAULT_REPLICAS_CONFIG)))
-      val retentionMs = topic.config.retentionMs.getOrElse(configSet.retentionMs.getOrElse(
-        conf.get[Long](cluster.toLowerCase + DEFAULT_RETENTION_CONFIG)))
       val cleanupPolicy = topic.config.cleanupPolicy.getOrElse(configSet.cleanupPolicy.getOrElse(
         TopicConfig.CLEANUP_POLICY_DELETE))
+      val retentionMs = getRetentionMs(cluster, configSet, topic, cleanupPolicy)
+
       val configs = Map(
         TopicConfig.RETENTION_MS_CONFIG -> retentionMs.toString,
         TopicConfig.CLEANUP_POLICY_CONFIG -> cleanupPolicy)

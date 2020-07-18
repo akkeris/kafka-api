@@ -7,6 +7,7 @@ import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.{ AdminClient, AdminClientConfig }
 import org.apache.kafka.common.config.SaslConfigs
 import play.api.{ Configuration, Logger }
+import scala.collection.JavaConverters._
 
 class AdminClientUtil @Inject() (conf: Configuration) {
   import AdminClientUtil._
@@ -37,6 +38,12 @@ class AdminClientUtil @Inject() (conf: Configuration) {
       case _ =>
     }
     AdminClient.create(props)
+  }
+
+  def deleteConsumerGroup(cluster: String, consumerGroupName: String): Unit = {
+    val adminClient = getAdminClient(cluster)
+    adminClient.deleteConsumerGroups(List(consumerGroupName).asJava).all().get
+    adminClient.close()
   }
 
 }

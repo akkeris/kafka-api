@@ -33,6 +33,8 @@ libraryDependencies += "org.apache.kafka" %% "kafka" % "2.0.0"
 libraryDependencies += "io.confluent" % "kafka-avro-serializer" % "4.1.2"
 libraryDependencies += "net.manub" %% "scalatest-embedded-kafka" % "1.0.0" % "test"
 libraryDependencies += "io.swagger" %% "swagger-play2" % "1.6.+"
+libraryDependencies += "com.sksamuel.avro4s" %% "avro4s-core" % "2.0.3"
+libraryDependencies += "com.github.javafaker" % "javafaker" % "0.16" % Test
 coverageExcludedPackages := "<empty>;Reverse.*;views.*;router.*;database.*"
 
 javaOptions in Test ++= Seq("-Dconfig.file=conf/application.test.conf", "-Dplay.evolutions.db.default.autoApply=true")

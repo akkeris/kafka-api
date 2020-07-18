@@ -53,4 +53,37 @@ class ConsumerUtil @Inject() (conf: Configuration) {
     consumer
   }
 
+  def getKafkaProps(
+                        cluster: String,
+                        topics:  Option[Seq[String]],
+                        groupId: String              = s"kafka-api-admin-${UUID.randomUUID.toString}",
+                      ): Properties = {
+    val kafkaHostName = conf.get[String](cluster.toLowerCase + KAFKA_LOCATION_CONFIG)
+    val avroLocation = conf.get[String](cluster.toLowerCase + AVRO_LOCATION_CONFIG)
+    val kafkaSecurityProtocol = conf.getOptional[String](cluster.toLowerCase + KAFKA_SECURITY_PROTOCOL_CONFIG)
+    val kafkaSaslMechanism = conf.getOptional[String](cluster.toLowerCase + KAFKA_SASL_MECHANISM_CONFIG)
+    val username = conf.getOptional[String](cluster.toLowerCase + KAFKA_ADMIN_USERNAME_CONFIG)
+    val password = conf.getOptional[String](cluster.toLowerCase + KAFKA_ADMIN_PASSWORD_CONFIG)
+
+    val props = new Properties()
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHostName)
+    props.put(ConsumerConfig.CLIENT_ID_CONFIG, s"${ADMIN_CLIENT_ID}-${UUID.randomUUID.toString}")
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId)
+    props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1")
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
+
+    props.put("schema.registry.url", avroLocation)
+    kafkaSecurityProtocol.map { props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, _) }
+    kafkaSaslMechanism.map { props.put(SaslConfigs.SASL_MECHANISM, _) }
+    kafkaSaslMechanism match {
+      case Some("PLAIN") =>
+        props.put(
+          SaslConfigs.SASL_JAAS_CONFIG,
+          s"""org.apache.kafka.common.security.plain.PlainLoginModule required username="${username.getOrElse("")}" password="${password.getOrElse("")}";""")
+      case _ =>
+    }
+    props
+  }
+
 }

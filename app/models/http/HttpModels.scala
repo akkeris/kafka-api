@@ -21,6 +21,8 @@ object HttpModels {
   final case class TopicSchemaMapping(topic: String, schema: SchemaRequest) extends HttpRequest
   final case class TopicKeyMappingRequest(topic: String, keyType: KeyType, schema: Option[SchemaRequest]) extends HttpRequest
   final case class ConsumerGroupSeekRequest(topic: String, partitions: Option[List[Int]], seekTo: String, allPartitions: Option[Boolean]) extends HttpRequest
+  final case class MigrationStage1Request(cluster: String, topics: Option[List[String]]) extends HttpRequest
+  final case class MigrationStage2Request(cluster: String, topics: Option[List[String]]) extends HttpRequest
 
   implicit val topicRequestFormat = Json.format[TopicRequest]
   implicit val topicResponseFormat = Json.format[TopicResponse]
@@ -33,6 +35,8 @@ object HttpModels {
   implicit val consumerGroupSeekRequestFormat = Json.format[ConsumerGroupSeekRequest]
   implicit val errorFormat = Json.format[Error]
   implicit val errorRespFormat = Json.format[ErrorResponse]
+  implicit val migrationStage1RequestFormat = Json.format[MigrationStage1Request]
+  implicit val migrationStage2RequestFormat = Json.format[MigrationStage2Request]
 
   def createErrorResponse(title: String, message: String): ErrorResponse = ErrorResponse(Seq(Error(title, message)))
 }

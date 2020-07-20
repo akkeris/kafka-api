@@ -32,3 +32,6 @@ GET        /v1/kafka/cluster/:cluster/consumer-groups/:consumerGroupName/offsets
 GET        /v1/kafka/cluster/:cluster/consumer-groups/:consumerGroupName/members    controllers.ConsumerGroupsController.listMembers(cluster: String, consumerGroupName: String)
 GET        /v1/kafka/cluster/:cluster/topics/:topic/preview                         controllers.ConsumerGroupsController.preview(cluster: String, topic: String)
 POST       /v1/kafka/cluster/:cluster/consumer-groups/:consumerGroupName/seek       controllers.ConsumerGroupsController.seek(cluster: String, consumerGroupName: String)
+
+POST       /v1/kafka/migration-stage1                                               controllers.MigrationController.migrateStage1()
+POST       /v1/kafka/migration-stage2                                               controllers.MigrationController.migrateStage2()

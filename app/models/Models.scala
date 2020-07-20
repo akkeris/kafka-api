@@ -7,6 +7,10 @@ import play.api.libs.json.Reads._
 import play.api.libs.json._
 
 object Models {
+
+  import java.time.Duration
+
+  val ONE_DAY_MS = Duration.ofDays(1).getSeconds * 1000
   case class TopicConfiguration(name: String, cleanupPolicy: Option[String], partitions: Option[Int], retentionMs: Option[Long], replicas: Option[Int])
   case class TopicKeyType(keyType: KeyType, schema: Option[String])
   case class Topic(name: String, config: TopicConfiguration, keyMapping: Option[TopicKeyType] = None, schemas: Option[List[String]] = None, cluster: Option[String] = None)
